@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Net;
@@ -65,6 +66,12 @@ namespace MediaBrowser.Plugins.DVBViewer
             {
                 return "DVBViewer TV Plugin to enable Live TV streaming and scheduling.";
             }
+        }
+
+        private Guid _id = new Guid("a697f993-d2de-45dc-b7ea-687363f7903e");
+        public override Guid Id
+        {
+            get { return _id; }
         }
 
         /// <summary>
