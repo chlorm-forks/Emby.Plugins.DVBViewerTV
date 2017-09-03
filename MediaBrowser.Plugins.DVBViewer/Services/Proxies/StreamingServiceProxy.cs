@@ -1,7 +1,6 @@
 ﻿using System;
+using System.Net;
 using System.Threading;
-using System.Web;
-
 using MediaBrowser.Common.Net;
 using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.MediaInfo;
@@ -55,7 +54,7 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
 
         private StreamingDetails GetStream(CancellationToken cancellationToken, string itemId, TimeSpan startPosition)
         {
-            var identifier = HttpUtility.UrlEncode(String.Format("{0}-{1:yyyyMMddHHmmss}", itemId, DateTime.UtcNow));   
+            var identifier = WebUtility.UrlEncode(String.Format("{0}-{1:yyyyMMddHHmmss}", itemId, DateTime.UtcNow));   
             var url = "";
 
             if (itemId.StartsWith("Recording"))

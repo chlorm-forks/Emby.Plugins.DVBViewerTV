@@ -71,7 +71,7 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
         /// <param name="args">The arguments.</param>
         /// <returns></returns>
         /// <exception cref="MediaBrowser.Plugins.DVBViewer.Services.Exceptions.ServiceAuthenticationException">There was a problem authenticating with the DVBViewer Recording Service</exception>
-        protected TResult GetFromService<TResult>(CancellationToken cancellationToken, dynamic type, String action, params object[] args)
+        protected TResult GetFromService<TResult>(CancellationToken cancellationToken, Type type, String action, params object[] args)
         {
             var configuration = Plugin.Instance.Configuration;
             var request = new HttpRequestOptions()
@@ -94,7 +94,7 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
                 var task = HttpClient.Get(request);
                 using (var stream = task.Result)
                 {
-                    return XmlSerializer.DeserializeFromStream(type, stream);
+                    return (TResult)XmlSerializer.DeserializeFromStream(type, stream);
                 }
                 
             }

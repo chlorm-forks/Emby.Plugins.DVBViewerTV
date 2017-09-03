@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.Caching;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -167,29 +166,29 @@ namespace MediaBrowser.Plugins.DVBViewer
 
         public Task<IEnumerable<TimerInfo>> GetTimersAsync(CancellationToken cancellationToken)
         {
-            if (Plugin.Instance.Configuration.EnableTimerCache)
-            {
-                var timerCache = MemoryCache.Default;
+            //if (Plugin.Instance.Configuration.EnableTimerCache)
+            //{
+            //    var timerCache = MemoryCache.Default;
 
-                if (refreshTimers)
-                {
-                    timerCache.Remove("timers");
-                    refreshTimers = false;
-                }
+            //    if (refreshTimers)
+            //    {
+            //        timerCache.Remove("timers");
+            //        refreshTimers = false;
+            //    }
 
-                if (!timerCache.Contains("timers"))
-                {
-                    Plugin.Logger.Info("Add timers to memory cache");
-                    var expiration = DateTimeOffset.UtcNow.AddSeconds(20);
-                    var results = Plugin.TvProxy.GetSchedules(cancellationToken);
+            //    if (!timerCache.Contains("timers"))
+            //    {
+            //        Plugin.Logger.Info("Add timers to memory cache");
+            //        var expiration = DateTimeOffset.UtcNow.AddSeconds(20);
+            //        var results = Plugin.TvProxy.GetSchedules(cancellationToken);
 
-                    timerCache.Add("timers", Task.FromResult(results), expiration);
-                }
+            //        timerCache.Add("timers", Task.FromResult(results), expiration);
+            //    }
 
-                Plugin.Logger.Info("Return timers from memory cache");
-                return (Task<IEnumerable<TimerInfo>>)timerCache.Get("timers", null);
-            }
-            else
+            //    Plugin.Logger.Info("Return timers from memory cache");
+            //    return (Task<IEnumerable<TimerInfo>>)timerCache.Get("timers", null);
+            //}
+            //else
             {
                 return Task.FromResult(Plugin.TvProxy.GetSchedules(cancellationToken));
             }

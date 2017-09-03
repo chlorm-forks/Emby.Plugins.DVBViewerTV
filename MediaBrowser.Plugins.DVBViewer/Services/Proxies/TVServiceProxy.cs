@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.Caching;
 using System.Text;
 using System.Threading;
 
@@ -44,27 +43,27 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
 
         private Channels GetChannelList(CancellationToken cancellationToken)
         {
-            if (Plugin.Instance.Configuration.EnableTimerCache)
-            {
-                var channelsCache = MemoryCache.Default;
+            //if (Plugin.Instance.Configuration.EnableTimerCache)
+            //{
+            //    var channelsCache = MemoryCache.Default;
 
-                if (refreshChannels)
-                {
-                    channelsCache.Remove("channels");
-                    refreshChannels = false;
-                }
+            //    if (refreshChannels)
+            //    {
+            //        channelsCache.Remove("channels");
+            //        refreshChannels = false;
+            //    }
 
-                if (!channelsCache.Contains("channels"))
-                {
-                    var expiration = DateTimeOffset.UtcNow.AddSeconds(60); ;
-                    var results = GetFromService<Channels>(cancellationToken, typeof(Channels), "api/getchannelsxml.html?root={0}&logo=1", GeneralExtensions.ToUrlString(Configuration.DefaultChannelGroup));
+            //    if (!channelsCache.Contains("channels"))
+            //    {
+            //        var expiration = DateTimeOffset.UtcNow.AddSeconds(60); ;
+            //        var results = GetFromService<Channels>(cancellationToken, typeof(Channels), "api/getchannelsxml.html?root={0}&logo=1", GeneralExtensions.ToUrlString(Configuration.DefaultChannelGroup));
 
-                    channelsCache.Add("channels", results, expiration);
-                }
+            //        channelsCache.Add("channels", results, expiration);
+            //    }
 
-                return (Channels)channelsCache.Get("channels", null);
-            }
-            else
+            //    return (Channels)channelsCache.Get("channels", null);
+            //}
+            //else
             {
                 return GetFromService<Channels>(cancellationToken, typeof(Channels), "api/getchannelsxml.html?root={0}&logo=1", GeneralExtensions.ToUrlString(Configuration.DefaultChannelGroup));
             }
