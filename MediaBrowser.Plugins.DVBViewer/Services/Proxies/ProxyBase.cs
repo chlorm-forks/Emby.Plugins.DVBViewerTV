@@ -70,14 +70,14 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
         /// <param name="action">The action.</param>
         /// <param name="args">The arguments.</param>
         /// <returns></returns>
-        /// <exception cref="MediaBrowser.Plugins.DVBViewer.Services.Exceptions.ServiceAuthenticationException">There was a problem authenticating with the DVBViewer Recording Service</exception>
+        /// <exception cref="MediaBrowser.Plugins.DVBViewer.Services.Exceptions.ServiceAuthenticationException">There was a problem authenticating with the DVBViewer Media Server</exception>
         protected TResult GetFromService<TResult>(CancellationToken cancellationToken, Type type, String action, params object[] args)
         {
             var configuration = Plugin.Instance.Configuration;
             var request = new HttpRequestOptions()
             {
                 Url = GetUrl(action, args),
-                RequestContentType = "application/xml",
+                RequestContentType = "application/x-www-form-urlencoded",
                 LogErrorResponseBody = true,
                 LogRequest = true,
             };
@@ -103,7 +103,7 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
                 var exception = aggregateException.Flatten().InnerExceptions.OfType<MediaBrowser.Model.Net.HttpException>().FirstOrDefault();
                 if (exception != null && exception.StatusCode == HttpStatusCode.Unauthorized)
                 {
-                    throw new ServiceAuthenticationException("There was a problem authenticating with the DVBViewer Recording Service", exception);
+                    throw new ServiceAuthenticationException("There was a problem authenticating with the DVBViewer Media Server", exception);
                 }
 
                 throw;
@@ -129,14 +129,14 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
 
             try
             {
-                return Task.FromResult(HttpClient.Get(request));
+                return Task.FromResult(HttpClient.GetResponse(request).Result.StatusCode);
             }
             catch (AggregateException aggregateException)
             {
-                var exception = aggregateException.Flatten().InnerExceptions.OfType<MediaBrowser.Model.Net.HttpException>().FirstOrDefault();
-                if (exception != null && exception.StatusCode == HttpStatusCode.Unauthorized)
+                var exception = aggregateException.Flatten().InnerExceptions.OfType<Model.Net.HttpException>().FirstOrDefault();
+                if (exception != null && exception.StatusCode ==  HttpStatusCode.Unauthorized)
                 {
-                    throw new ServiceAuthenticationException("There was a problem authenticating with the DVBViewer Recording Service", exception);
+                    throw new ServiceAuthenticationException("There was a problem authenticating with the DVBViewer Media Server", exception);
                 }
 
                 throw;
@@ -149,7 +149,8 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
             var request = new HttpRequestOptions()
             {
                 Url = GetUrl(action),
-                RequestContentType = "application/x-www-form-urlencoded",
+                RequestContentType = "application/xml",
+                //RequestContentType = "application/x-www-form-urlencoded",
                 UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36",
                 EnableKeepAlive = true,
                 LogErrorResponseBody = true,
@@ -174,7 +175,7 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
                 var exception = aggregateException.Flatten().InnerExceptions.OfType<MediaBrowser.Model.Net.HttpException>().FirstOrDefault();
                 if (exception != null && exception.StatusCode == HttpStatusCode.Unauthorized)
                 {
-                    throw new ServiceAuthenticationException("There was a problem authenticating with the DVBViewer Recording Service", exception);
+                    throw new ServiceAuthenticationException("There was a problem authenticating with the DVBViewer Media Server", exception);
                 }
 
                 throw;
@@ -203,11 +204,11 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
             {
                 imageStream.Stream = HttpClient.GetResponse(request).Result.Content;
 
-                if (String.Equals(type, "jpg", StringComparison.InvariantCultureIgnoreCase))
+                if (String.Equals(type, "jpg", StringComparison.OrdinalIgnoreCase))
                     imageStream.Format = Model.Drawing.ImageFormat.Jpg;
-                if (String.Equals(type, "png", StringComparison.InvariantCultureIgnoreCase))
+                if (String.Equals(type, "png", StringComparison.OrdinalIgnoreCase))
                     imageStream.Format = Model.Drawing.ImageFormat.Png;
-                if (String.Equals(type, "bmp", StringComparison.InvariantCultureIgnoreCase))
+                if (String.Equals(type, "bmp", StringComparison.OrdinalIgnoreCase))
                     imageStream.Format = Model.Drawing.ImageFormat.Bmp;
 
                 return imageStream;
@@ -217,7 +218,7 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
                 var exception = aggregateException.Flatten().InnerExceptions.OfType<MediaBrowser.Model.Net.HttpException>().FirstOrDefault();
                 if (exception != null && exception.StatusCode == HttpStatusCode.Unauthorized)
                 {
-                    throw new ServiceAuthenticationException("There was a problem authenticating with the DVBViewer Recording Service", exception);
+                    throw new ServiceAuthenticationException("There was a problem authenticating with the DVBViewer Media Server", exception);
                 }
 
                 throw;
