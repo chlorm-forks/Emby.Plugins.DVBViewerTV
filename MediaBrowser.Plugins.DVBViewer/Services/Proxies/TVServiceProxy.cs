@@ -126,29 +126,24 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
                     Name = p.Name,
                     EpisodeNumber = p.EpisodeNumber,
                     SeasonNumber = p.SeasonNumber,
+                    ProductionYear = p.ProductionYear,
                     Id = GeneralExtensions.SetEventId(channelId, p.Start, p.Stop),
                     SeriesId = p.Name,
                     ChannelId = p.ChannelId,
                     StartDate = GeneralExtensions.GetProgramTime(p.Start),
                     EndDate = GeneralExtensions.GetProgramTime(p.Stop),
                     Overview = p.Overview,
+                    Etag = p.EitContent,
                 };
 
-                if (!String.IsNullOrEmpty(p.Overview))
+                if (!String.IsNullOrEmpty(p.EitContent) || !String.IsNullOrEmpty(p.Overview))
                 {
                     genreMapper.PopulateProgramGenres(program);
                 }
 
                 if (program.IsSeries && p.Name != p.EpisodeTitle)
                 {
-                    program.EpisodeTitle = Regex.Replace(p.EpisodeTitle, @"(^[s]?[0-9]*[e|x|\.][0-9]*[^\w]+)|(\s[\(]?[s]?[0-9]*[e|x|\.][0-9]*[\)]?$)", String.Empty, RegexOptions.IgnoreCase);
-                }
-
-                if (!String.IsNullOrEmpty(Regex.Match(p.Name, @"(?<=\()\d{4}(?=\)$)").Value))
-                {
-                    int year;
-                    Int32.TryParse((Regex.Match(p.Name, @"(?<=\()\d{4}(?=\)$)").Value), out year);
-                    program.ProductionYear = year;
+                    program.EpisodeTitle = p.EpisodeTitle;
                 }
 
                 if (Configuration.ProgramImages)
@@ -187,11 +182,13 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
                 var recording = new MyRecordingInfo()
                 {
                     Id = r.Id,
-                    Name = Regex.Replace(r.Name, @"\s\W[a-zA-Z]?[0-9]{1,3}?\W$", String.Empty),
-                    EpisodeTitle = (!String.IsNullOrEmpty(r.EpisodeTitle)) ? Regex.Replace(r.EpisodeTitle, @"(^[s]?[0-9]*[e|x|\.][0-9]*[^\w]+)|(\s[\(]?[s]?[0-9]*[e|x|\.][0-9]*[\)]?$)", String.Empty, RegexOptions.IgnoreCase) : null,
+                    Name = r.Name,
+                    EpisodeTitle = r.EpisodeTitle,
                     EpisodeNumber = r.EpisodeNumber,
                     SeasonNumber = r.SeasonNumber,
+                    Year = r.Year,
                     Overview = r.Overview,
+                    EitContent = r.EitContent,
                     SeriesTimerId = r.Series,
                     ChannelId = r.ChannelId,
                     ChannelName = r.ChannelName,
@@ -201,21 +198,14 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
                     Path = r.File,
                 };
 
-                if (!String.IsNullOrEmpty(r.Overview))
+                if (!String.IsNullOrEmpty(r.EitContent) || !String.IsNullOrEmpty(r.Overview))
                 {
                     genreMapper.PopulateRecordingGenres(recording);
                 }
 
-                if (!String.IsNullOrEmpty(Regex.Match(r.Name, @"(?<=\()\d{4}(?=\)$)").Value))
+                if (recording.IsMovie)
                 {
-                    if (recording.IsMovie)
-                    {
-                        recording.Name = Regex.Replace(r.Name, @"(?<=\S)\s\W\d{4}\W(?=$)", String.Empty);
-                    }
-
-                    int year;
-                    Int32.TryParse((Regex.Match(r.Name, @"(?<=\()\d{4}(?=\)$)").Value), out year);
-                    recording.Year = year;
+                    recording.Name = r.MovieName;
                 }
 
                 if ((recording.StartDate <= DateTime.Now.ToUniversalTime()) && (recording.EndDate >= DateTime.Now.ToUniversalTime()))
@@ -337,7 +327,7 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
                 {
                     timerInfo.ProgramId = GeneralExtensions.SetEventId(program.ChannelId, program.Start, program.Stop);
                     timerInfo.Name = (program.EpisodeNumber.HasValue) ? program.Name + " - " + program.EpisodeTitle : program.Name;
-                    timerInfo.EpisodeTitle = Regex.Replace(program.EpisodeTitle, @"(^[s]?[0-9]*[e|x|\.][0-9]*[^\w]+)|(\s[\(]?[s]?[0-9]*[e|x|\.][0-9]*[\)]?$)", String.Empty, RegexOptions.IgnoreCase);
+                    timerInfo.EpisodeTitle = program.EpisodeTitle;
                     timerInfo.EpisodeNumber = program.EpisodeNumber;
                     timerInfo.SeasonNumber = program.SeasonNumber;
                     timerInfo.Overview = program.Overview;
@@ -536,12 +526,25 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
             if (!String.IsNullOrWhiteSpace(Configuration.TimerTask))
                 builder.AppendFormat("AfterProcessAction={0}&", Configuration.TimerTask.ToUrlString());
 
-            if (Configuration.CheckRecordingTitel)
+            if (Configuration.CheckRecordingTitle)
                 builder.AppendFormat("CheckRecTitle=1&");
-            if (Configuration.CheckRecordingInfo)
+            else
+                builder.AppendFormat("CheckRecTitle=0&");
+
+            if (Configuration.CheckRecordingSubTitle)
                 builder.AppendFormat("CheckRecSubtitle=1&");
+            else
+                builder.AppendFormat("CheckRecSubtitle=0&");
+
+            if (Configuration.CheckRemovedRecording)
+                builder.AppendFormat("IncRemoved=1&");
+            else
+                builder.AppendFormat("IncRemoved=0&");
+
             if (Configuration.CheckTimerName)
                 builder.AppendFormat("CheckTimer=1&");
+            else
+                builder.AppendFormat("CheckTimer=0&");
 
             if (!timer.RecordAnyChannel)
             {
@@ -663,6 +666,10 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
             if (timer.SkipEpisodesInLibrary)
             {
                 builder.AppendFormat("Priority=49&");
+            }
+            else
+            {
+                builder.AppendFormat("Priority=50&");
             }
 
             builder.Remove(builder.Length - 1, 1);

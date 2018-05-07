@@ -26,8 +26,9 @@ namespace MediaBrowser.Plugins.DVBViewer.Configuration
             TimerPrePadding = 5;
             TimerPostPadding = 10;
             EnableRecordingImport = true;
-            CheckRecordingTitel = true;
-            CheckRecordingInfo = true;
+            CheckRecordingTitle = true;
+            CheckRecordingSubTitle = true;
+            CheckRemovedRecording = true;
             CheckTimerName = true;
             EnableTimerCache = true;
 
@@ -81,6 +82,11 @@ namespace MediaBrowser.Plugins.DVBViewer.Configuration
         public String DefaultChannelGroup { get; set; }
 
         /// <summary>
+        /// Use DVBViewer genre (EIT Content Categories)
+        /// </summary>
+        public bool EitContent { get; set; }
+
+        /// <summary>
         /// The genre mappings, to map localised DVBViewer genres, to Emby categories.
         /// </summary>
         public SerializableDictionary<String, List<String>> GenreMappings { get; set; }
@@ -113,12 +119,17 @@ namespace MediaBrowser.Plugins.DVBViewer.Configuration
         /// <summary>
         /// Checks the recording titel in AutoSearch to prevent recording repeats
         /// </summary>
-        public bool CheckRecordingTitel { get; set; }
+        public bool CheckRecordingTitle { get; set; }
 
         /// <summary>
-        /// Checks the recording info in AutoSearch to prevent recording repeats
+        /// Checks the recording subtitel in AutoSearch to prevent recording repeats
         /// </summary>
-        public bool CheckRecordingInfo { get; set; }
+        public bool CheckRecordingSubTitle { get; set; }
+
+        /// <summary>
+        /// Checks the recording subtitel in AutoSearch to prevent recording repeats
+        /// </summary>
+        public bool CheckRemovedRecording { get; set; }
 
         /// <summary>
         /// Checks the timer name in AutoSearch to prevent recording repeats

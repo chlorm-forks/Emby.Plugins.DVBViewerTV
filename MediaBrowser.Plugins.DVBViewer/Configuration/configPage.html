@@ -17,16 +17,16 @@
                         </div>
                     </div>
                     <div class="inputContainer">
-                        <input is="emby-input" id="txtStreamPortNumber" name="txtStreamPortNumber" label="Webserver Port number:" />
+                        <input is="emby-input" id="txtApiPortNumber" name="txtApiPortNumber" label="Webserver Port number:" />
                         <div class="fieldDescription">
                             The Webserver port number of the DVBViewer Media Server
                         </div>
                     </div>
                     <div class="inputContainer">
-                        <input is="emby-input" id="txtMediaPortNumber" name="txtMediaPortNumber" label="Live Streamserver Port number:" />
+                        <input is="emby-input" id="txtStreamPortNumber" name="txtStreamPortNumber" label="Live Streamserver Port number:" />
                     </div>
                     <div class="inputContainer">
-                        <input is="emby-input" id="txtApiPortNumber" name="txtApiPortNumber" label="Media Streamserver Port number:" />
+                        <input is="emby-input" id="txtMediaPortNumber" name="txtMediaPortNumber" label="Media Streamserver Port number:" />
                     </div>
                     <label class="checkboxContainer">
                         <input is="emby-checkbox" type="checkbox" id="chkRequiresAuthentication" />
@@ -70,43 +70,50 @@
                         </div>
                     </div>
 
-                    <div is="emby-collapse" title="Program and Recording Category Options">
+                    <div is="emby-collapse" title="Program and Recording Category Mapping">
                         <div class="collapseContent">
-                            <p>Searches DVBViewer program and recording description for genre keywords and maps the show to Emby categories</p>
-                            <div class="inputContainer">
-                                <input is="emby-input" id="txtMovieGenre" name="txtMovieGenre" label="Movie genres:" />
-                                <div class="fieldDescription">
-                                    Example: Movie,Genre: Film,Action (Movie)
+                            <label class="checkboxContainer">
+                                <input is="emby-checkbox" type="checkbox" id="chkEitContent" />
+                                <span>Use DVBViewer's internal genres (EIT content) for Emby category mapping</span>
+                            </label>
+                            <div id="txtGenreMapping">
+                                <br />
+                                <p>Search DVBViewer program & recording description for genre keywords and map it to Emby categories</p>
+                                <div class="inputContainer">
+                                    <input is="emby-input" id="txtMovieGenre" name="txtMovieGenre" label="Movie genres:" />
+                                    <div class="fieldDescription">
+                                        Example: Movie,Genre: Film,Action (Movie)
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="inputContainer">
-                                <input is="emby-input" id="txtSeriesGenre" name="txtSeriesGenre" label="Series genres:" />
-                                <div class="fieldDescription">
-                                    Example: Action Series,Genre: Drama (Series),Daily Soap
+                                <div class="inputContainer">
+                                    <input is="emby-input" id="txtSeriesGenre" name="txtSeriesGenre" label="Series genres:" />
+                                    <div class="fieldDescription">
+                                        Example: Action Series,Genre: Drama (Series),Daily Soap
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="inputContainer">
-                                <input is="emby-input" id="txtSportsGenre" name="txtSportsGenre" label="Sports genres:" />
-                                <div class="fieldDescription">
-                                    Example: Sport,Football
+                                <div class="inputContainer">
+                                    <input is="emby-input" id="txtSportsGenre" name="txtSportsGenre" label="Sports genres:" />
+                                    <div class="fieldDescription">
+                                        Example: Sport,Football
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="inputContainer">
-                                <input is="emby-input" id="txtNewsGenre" name="txtNewsGenre" label="News or documentary genres:" />
-                                <div class="fieldDescription">
-                                    Example: News Report,Daily News
+                                <div class="inputContainer">
+                                    <input is="emby-input" id="txtNewsGenre" name="txtNewsGenre" label="News or documentary genres:" />
+                                    <div class="fieldDescription">
+                                        Example: News Report,Daily News
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="inputContainer">
-                                <input is="emby-input" id="txtKidsGenre" name="txtKidsGenre" label="Kids genres:" />
-                                <div class="fieldDescription">
-                                    Example: Cartoon,Genre: Animation
+                                <div class="inputContainer">
+                                    <input is="emby-input" id="txtKidsGenre" name="txtKidsGenre" label="Kids genres:" />
+                                    <div class="fieldDescription">
+                                        Example: Cartoon,Genre: Animation
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="inputContainer">
-                                <input is="emby-input" id="txtLiveGenre" name="txtLiveGenre" label="Live genres:" />
-                                <div class="fieldDescription">
-                                    Example: Live Gameshow,Genre: Live Sports
+                                <div class="inputContainer">
+                                    <input is="emby-input" id="txtLiveGenre" name="txtLiveGenre" label="Live genres:" />
+                                    <div class="fieldDescription">
+                                        Example: Live Gameshow,Genre: Live Sports
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -124,14 +131,18 @@
                                     The name of the task that shall be executed after the recording has finished
                                 </div>
                             </div>
-                            <div>Prevent recording repeats from EPG AutoSearch by:</div>
+                            <div>Prevent recording repeats from EPG AutoSearch by checking against:</div>
                             <label class="checkboxContainer">
-                                <input is="emby-checkbox" type="checkbox" id="chkCheckRecordingTitel" />
-                                <span>Recording Titel</span>
+                                <input is="emby-checkbox" type="checkbox" id="chkCheckRecordingTitle" />
+                                <span>Recording Title (existing) vs. EPG Title</span>
                             </label>
                             <label class="checkboxContainer">
-                                <input is="emby-checkbox" type="checkbox" id="chkCheckRecordingInfo" />
-                                <span>Recording Info</span>
+                                <input is="emby-checkbox" type="checkbox" id="chkCheckRecordingSubTitle" />
+                                <span>Recording Subtitle (existing) vs. EPG Subtitle</span>
+                            </label>
+                            <label class="checkboxContainer">
+                                <input is="emby-checkbox" type="checkbox" id="chkCheckRemovedRecording" />
+                                <span>Removed Recording</span>
                             </label>
                             <label class="checkboxContainer">
                                 <input is="emby-checkbox" type="checkbox" id="chkCheckTimerName" />
@@ -247,6 +258,19 @@
             };
 
 
+            $("#chkEitContent").click(function () {
+                checkEitContent();
+            });
+
+            function checkEitContent() {
+                if ($("#chkEitContent").prop('checked')) {
+                    $("#txtGenreMapping").hide();
+                } else {
+                    $("#txtGenreMapping").show();
+                };
+            };
+
+
             $("#chkEnableRecordingImport").click(function () {
                 checkEnableRecordingImport();
                 checkEnableDirectAccess();
@@ -327,11 +351,13 @@
                     $('#txtPassword', page).val(config.Password);
                     $('#chkChannelFavourites', page).checked(config.ChannelFavourites || false).checkboxradio("refresh");
                     $('#chkProgramImages', page).checked(config.ProgramImages || false).checkboxradio("refresh");
+                    $('#chkEitContent', page).checked(config.EitContent || false).checkboxradio("refresh");
                     $('#txtTimerPrePadding', page).val(config.TimerPrePadding);
                     $('#txtTimerPostPadding', page).val(config.TimerPostPadding);
                     $('#txtTimerTask', page).val(config.TimerTask);
-                    $('#chkCheckRecordingTitel', page).checked(config.CheckRecordingTitel || false).checkboxradio("refresh");
-                    $('#chkCheckRecordingInfo', page).checked(config.CheckRecordingInfo || false).checkboxradio("refresh");
+                    $('#chkCheckRecordingTitle', page).checked(config.CheckRecordingTitle || false).checkboxradio("refresh");
+                    $('#chkCheckRecordingSubTitle', page).checked(config.CheckRecordingSubTitle || false).checkboxradio("refresh");
+                    $('#chkCheckRemovedRecording', page).checked(config.CheckRemovedRecording || false).checkboxradio("refresh");
                     $('#chkCheckTimerName', page).checked(config.CheckTimerName || false).checkboxradio("refresh");
                     $('#chkSkipAlreadyInLibrary', page).checked(config.SkipAlreadyInLibrary || false).checkboxradio("refresh");
                     $('#chkAutoCreateTimers', page).checked(config.AutoCreateTimers || false).checkboxradio("refresh");
@@ -347,6 +373,7 @@
                     checkRequiresAuthentication();
 
                     checkChannelFavourites();
+                    checkEitContent();
                     checkRequiresPathSubstitution();
 
                     loadSelects(config, page);
@@ -429,11 +456,13 @@
                     config.ChannelFavourites = $('#chkChannelFavourites', form).checked();
                     config.DefaultChannelGroup = $('#selectChannelGroup', form).val();
                     config.ProgramImages = $('#chkProgramImages', form).checked();
+                    config.EitContent = $('#chkEitContent', form).checked();
                     config.TimerPrePadding = $('#txtTimerPrePadding', form).val();
                     config.TimerPostPadding = $('#txtTimerPostPadding', form).val();
                     config.TimerTask = $('#txtTimerTask', form).val();
-                    config.CheckRecordingTitel = $('#chkCheckRecordingTitel', form).checked();
-                    config.CheckRecordingInfo = $('#chkCheckRecordingInfo', form).checked();
+                    config.CheckRecordingTitle = $('#chkCheckRecordingTitle', form).checked();
+                    config.CheckRecordingSubTitle = $('#chkCheckRecordingSubTitle', form).checked();
+                    config.CheckRemovedRecording = $('#chkCheckRemovedRecording', form).checked();
                     config.CheckTimerName = $('#chkCheckTimerName', form).checked();
                     config.SkipAlreadyInLibrary = $('#chkSkipAlreadyInLibrary', form).checked();
                     config.SkipAlreadyInLibraryProfile = $('#selectSkipAlreadyInLibraryProfile', form).val();
