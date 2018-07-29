@@ -48,8 +48,26 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Entities
         [XmlAttribute("PostEPG")]
         public int PostEPG { get; set; }
 
+        [XmlAttribute("Priority")]
+        public int Priority { get; set; }
+
         [XmlElement("Series")]
         public string Series { get; set; }
+
+        [XmlElement("Channel")]
+        public TimerChannel Channel { private get; set; }
+
+        public string ChannelId
+        {
+            get
+            {
+                if (Channel != null)
+                {
+                    return Channel.Id.Split('|').GetValue(0).ToString();
+                }
+                return null;
+            }
+        }
 
         //[XmlElement("Source")]
         //public string Source { get; set; }
@@ -80,28 +98,6 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Entities
 
         //[XmlElement("Options")]
         //public Options Options { get; set; }
-
-        [XmlElement("Channel")]
-        public TimerChannel Channel { private get; set; }
-
-        public string ChannelId
-        {
-            get
-            {
-                if (Channel != null)
-                {
-                    return Channel.Id.Split('|').GetValue(0).ToString();
-                }
-                else
-                {
-                    return null;
-                }
-            }
-            set
-            {
-                ChannelId = value;
-            }
-        }
     }
 
     public class TimerChannel

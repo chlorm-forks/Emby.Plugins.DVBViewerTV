@@ -5,21 +5,25 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
+using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Extensions;
+using MediaBrowser.Model.Serialization;
 using MediaBrowser.Model.Tasks;
+using MediaBrowser.Plugins.DVBViewer.Services.Proxies;
 
 namespace MediaBrowser.Plugins.DVBViewer.Helpers
 {
-    public class RefreshTimersTask : IScheduledTask, IConfigurableScheduledTask
+    public class RefreshTimersTask : ProxyBase, IScheduledTask, IConfigurableScheduledTask
     {
         private readonly ILibraryManager _libraryManager;
 
-        public RefreshTimersTask(ILibraryManager libraryManager)
+        public RefreshTimersTask(IHttpClient httpClient, IJsonSerializer jsonSerializer, IXmlSerializer xmlSerializer, ILibraryManager libraryManager)
+            : base(httpClient, jsonSerializer, xmlSerializer)
         {
             _libraryManager = libraryManager;
         }
@@ -61,23 +65,17 @@ namespace MediaBrowser.Plugins.DVBViewer.Helpers
         private void SkipTimers(CancellationToken cancellationToken)
         {
             var timers = Plugin.TvProxy.GetSchedulesFromMemory(cancellationToken);
-            var seriestimers = Plugin.TvProxy.GetSeriesSchedulesFromMemory(cancellationToken);
 
-            foreach (var seriestimer in seriestimers.Where(x => x.Priority.Equals(49)))
+            foreach (var timer in timers.Where(x => x.Status.Equals(Model.LiveTv.RecordingStatus.New) && x.Priority.Equals(49)))
             {
-                foreach (var timer in timers.Where(x => x.Status.Equals(Model.LiveTv.RecordingStatus.New)))
+                if (IsAlreadyInLibrary(timer))
                 {
-                    if (timer.SeriesTimerId == seriestimer.Id)
-                    {
-                        Plugin.Logger.Info("Series Schedule: {0} is marked for library watching", seriestimer.Name);
-                        if (IsAlreadyInLibrary(timer))
-                        {
-                            Plugin.Logger.Info("Schedule: {0} exists already as Emby library item, trying delete now", timer.Name);
-                            Plugin.TvProxy.DeleteSchedule(cancellationToken, timer.Id);
-                        }
-                    }
+                    Plugin.Logger.Info("Cancel Schedule: \"{0}\" already exists as Emby library item, trying cancel now", timer.Name);
+                    Task.FromResult(GetToService(cancellationToken, "api/timeredit.html?id={0}&enable=0", timer.Id));
                 }
             }
+
+            Plugin.TvProxy.RefreshSchedules(cancellationToken);
         }
 
         private bool IsAlreadyInLibrary(TimerInfo timer)
@@ -85,7 +83,7 @@ namespace MediaBrowser.Plugins.DVBViewer.Helpers
             if (!String.IsNullOrEmpty(timer.Name) && !String.IsNullOrEmpty(timer.EpisodeTitle))
             {
                 string seriesName = Regex.Replace(Regex.Split(timer.Name, @"\s\-\s").FirstOrDefault(), @"\s\W[a-zA-Z]?[0-9]{1,3}?\W$", String.Empty);
-                string episodeName = Regex.Replace(timer.EpisodeTitle, @"(^[s]?[0-9]*[e|x|\.][0-9]*[^\w]+)|(\s[\(]?[s]?[0-9]*[e|x|\.][0-9]*[\)]?$)", String.Empty, RegexOptions.IgnoreCase);
+                string episodeName = Regex.Replace(timer.EpisodeTitle, @"(^[(]?[s]?[0-9]*[e|x|\.][0-9]*[^\w]+)|(\s[(]?[s]?[0-9]*[e|x|\.][0-9]*[)]?$)", String.Empty, RegexOptions.IgnoreCase);
                 string movieName = Regex.Replace(timer.Name, @"\s\W[0-9]+\W$", String.Empty);
 
                 if (Plugin.Instance.Configuration.SkipAlreadyInLibraryProfile == "Season and Episode Numbers" && timer.EpisodeNumber.HasValue && timer.SeasonNumber.HasValue)
@@ -93,7 +91,8 @@ namespace MediaBrowser.Plugins.DVBViewer.Helpers
                     var seriesIds = _libraryManager.GetItemIds(new InternalItemsQuery
                     {
                         IncludeItemTypes = new[] { typeof(Series).Name },
-                        Name = seriesName
+                        Name = seriesName,
+                        IsVirtualItem = false,
 
                     }).ToArray();
 
@@ -109,6 +108,7 @@ namespace MediaBrowser.Plugins.DVBViewer.Helpers
                         IndexNumber = timer.EpisodeNumber.Value,
                         AncestorIds = seriesIds,
                         IsVirtualItem = false,
+                        IsMissing = false,
                         Limit = 1
                     });
 
@@ -123,7 +123,8 @@ namespace MediaBrowser.Plugins.DVBViewer.Helpers
                     var seriesIds = _libraryManager.GetItemIds(new InternalItemsQuery
                     {
                         IncludeItemTypes = new[] { typeof(Series).Name },
-                        NameContains = seriesName
+                        Name = seriesName,
+                        IsVirtualItem = false,
 
                     }).ToArray();
 
@@ -138,6 +139,7 @@ namespace MediaBrowser.Plugins.DVBViewer.Helpers
                         NameContains = episodeName,
                         AncestorIds = seriesIds,
                         IsVirtualItem = false,
+                        IsMissing = false,
                         Limit = 1
                     });
 
@@ -147,12 +149,13 @@ namespace MediaBrowser.Plugins.DVBViewer.Helpers
                     }
                 }
 
-                if (timer.IsMovie)
+                if (timer.IsMovie && !timer.EpisodeNumber.HasValue && !timer.SeasonNumber.HasValue)
                 {
                     var movie = _libraryManager.GetItemIds(new InternalItemsQuery
                     {
                         IncludeItemTypes = new[] { typeof(Movie).Name },
-                        NameContains = movieName
+                        NameContains = movieName,
+                        IsVirtualItem = false,
 
                     }).Select(i => i.ToString("N")).ToArray();
 
