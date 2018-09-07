@@ -51,8 +51,8 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
         private object _timerChannelLock = new object();
         private Channels _defaultChannelCache = null;
         private Channels _timerChannelCache = null;
-        private DateTime _defaultChannelExpirationTime;
-        private DateTime _timerChannelExpirationTime;
+        private DateTimeOffset _defaultChannelExpirationTime;
+        private DateTimeOffset _timerChannelExpirationTime;
 
         public Channels GetChannelList(CancellationToken cancellationToken, string channelGroup)
         {
@@ -66,9 +66,9 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
                         refreshChannels = false;
                     }
 
-                    if (_defaultChannelCache == null || _defaultChannelExpirationTime <= DateTime.UtcNow)
+                    if (_defaultChannelCache == null || _defaultChannelExpirationTime <= DateTimeOffset.UtcNow)
                     {
-                        _defaultChannelExpirationTime = DateTime.UtcNow.AddSeconds(240);
+                        _defaultChannelExpirationTime = DateTimeOffset.UtcNow.AddSeconds(240);
 
                         if (Configuration.ChannelFavourites)
                         {
@@ -88,9 +88,9 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
             {
                 lock (_timerChannelLock)
                 {
-                    if (_timerChannelCache == null || _timerChannelExpirationTime <= DateTime.UtcNow)
+                    if (_timerChannelCache == null || _timerChannelExpirationTime <= DateTimeOffset.UtcNow)
                     {
-                        _timerChannelExpirationTime = DateTime.UtcNow.AddSeconds(240);
+                        _timerChannelExpirationTime = DateTimeOffset.UtcNow.AddSeconds(240);
                         Plugin.Logger.Info("AUTOCREATE DVBViewer TIMERS: Get channels for group \"{0}\" now", GeneralExtensions.ToUrlString(Configuration.TimerChannelGroup));
                         _timerChannelCache = GetFromService<Channels>(cancellationToken, typeof(Channels), "api/getchannelsxml.html?root={0}", GeneralExtensions.ToUrlString(Configuration.TimerChannelGroup));
                     }
@@ -129,7 +129,7 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
             });
         }
 
-        public IEnumerable<ProgramInfo> GetPrograms(CancellationToken cancellationToken, string channelId, DateTime startDateUtc, DateTime endDateUtc)
+        public IEnumerable<ProgramInfo> GetPrograms(CancellationToken cancellationToken, string channelId, DateTimeOffset startDateUtc, DateTimeOffset endDateUtc)
         {
             var pluginPath = Plugin.Instance.ConfigurationFilePath.Remove(Plugin.Instance.ConfigurationFilePath.Length - 4);
             var channel = GetChannelList(new CancellationToken(), "DefaultChannelGroup").Root.ChannelGroup.SelectMany(c => c.Channel).Where(c => c.Id == channelId).FirstOrDefault();
@@ -216,8 +216,8 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
                     ChannelId = r.ChannelId,
                     ChannelName = r.ChannelName,
                     ChannelType = ChannelType.TV,
-                    StartDate = DateTime.ParseExact(r.Start, "yyyyMMddHHmmss", CultureInfo.InvariantCulture).ToUniversalTime(),
-                    EndDate =  DateTime.ParseExact(r.Start, "yyyyMMddHHmmss", CultureInfo.InvariantCulture).Add(TimeSpan.ParseExact(r.Duration, "hhmmss", CultureInfo.InvariantCulture)).ToUniversalTime(),
+                    StartDate = DateTimeOffset.ParseExact(r.Start, "yyyyMMddHHmmss", CultureInfo.InvariantCulture).ToUniversalTime(),
+                    EndDate = DateTimeOffset.ParseExact(r.Start, "yyyyMMddHHmmss", CultureInfo.InvariantCulture).Add(TimeSpan.ParseExact(r.Duration, "hhmmss", CultureInfo.InvariantCulture)).ToUniversalTime(),
                     Path = r.File,
                 };
 
@@ -231,7 +231,7 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
                     recording.Name = r.MovieName;
                 }
 
-                if ((recording.StartDate <= DateTime.Now.ToUniversalTime()) && (recording.EndDate >= DateTime.Now.ToUniversalTime()))
+                if ((recording.StartDate <= DateTimeOffset.Now.ToUniversalTime()) && (recording.EndDate >= DateTimeOffset.Now.ToUniversalTime()))
                 {
                     var timers = schedules.Timer.Where(t => GeneralExtensions.GetScheduleTime(t.Date, t.Start).AddMinutes(t.PreEPG) == recording.StartDate && t.Recording == "-1").FirstOrDefault();
 
@@ -432,8 +432,8 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
             if (starttime == "00:00" && endtime == "23:59")
             {
                 seriesTimerInfo.RecordAnyTime = true;
-                seriesTimerInfo.StartDate = DateTime.Now.AddHours(-1).ToUniversalTime();
-                seriesTimerInfo.EndDate = DateTime.Now.AddHours(1).ToUniversalTime();
+                seriesTimerInfo.StartDate = DateTimeOffset.Now.AddHours(-1).ToUniversalTime();
+                seriesTimerInfo.EndDate = DateTimeOffset.Now.AddHours(1).ToUniversalTime();
             }
 
             TimerDays days = (TimerDays)timerdays;

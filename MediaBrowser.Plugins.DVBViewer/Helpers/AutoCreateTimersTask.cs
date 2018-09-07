@@ -87,7 +87,7 @@ namespace MediaBrowser.Plugins.DVBViewer.Helpers
             Plugin.Logger.Info("AUTOCREATE DVBViewer TIMERS: Get guide data from backend now");
             foreach (var channel in channels)
             {
-                var program = GetFromService<Guide>(cancellationToken, typeof(Guide), "api/epg.html?lvl=2&channel={0}&start={1}&end={2}", channel.EPGID, GeneralExtensions.FloatDateTime(DateTime.Now), GeneralExtensions.FloatDateTime(DateTime.Now.AddHours(72))).Program;
+                var program = GetFromService<Guide>(cancellationToken, typeof(Guide), "api/epg.html?lvl=2&channel={0}&start={1}&end={2}", channel.EPGID, GeneralExtensions.FloatDateTime(DateTimeOffset.Now), GeneralExtensions.FloatDateTime(DateTimeOffset.Now.AddHours(72))).Program;
                 programs.AddRange(program.Where(p => p.ChannelEPGID == channel.EPGID));
             }
 
