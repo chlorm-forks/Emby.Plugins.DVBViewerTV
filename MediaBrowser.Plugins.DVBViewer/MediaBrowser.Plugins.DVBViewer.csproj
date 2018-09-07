@@ -16,6 +16,7 @@
     <None Remove="Images\Other Shows-thumb.png" />
     <None Remove="Images\Sports-thumb.png" />
     <None Remove="Images\TV Shows-thumb.png" />
+    <None Remove="thumb.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,10 +29,12 @@
     <EmbeddedResource Include="Images\Other Shows-thumb.png" />
     <EmbeddedResource Include="Images\Sports-thumb.png" />
     <EmbeddedResource Include="Images\TV Shows-thumb.png" />
+    <EmbeddedResource Include="thumb.png" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="mediabrowser.server.core" Version="3.5.0" />
+    <PackageReference Include="mediabrowser.server.core" Version="3.6.0.36-beta" />
+    <PackageReference Include="System.Memory" Version="4.5.1" />
   </ItemGroup>
 
   <ItemGroup>

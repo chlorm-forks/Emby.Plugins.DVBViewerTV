@@ -12,6 +12,8 @@ using MediaBrowser.Plugins.DVBViewer.Configuration;
 using MediaBrowser.Plugins.DVBViewer.Helpers;
 using MediaBrowser.Plugins.DVBViewer.Interfaces;
 using MediaBrowser.Plugins.DVBViewer.Services.Proxies;
+using System.IO;
+using MediaBrowser.Model.Drawing;
 
 namespace MediaBrowser.Plugins.DVBViewer
 {
@@ -73,6 +75,20 @@ namespace MediaBrowser.Plugins.DVBViewer
         public override Guid Id
         {
             get { return _id; }
+        }
+
+        public Stream GetThumbImage()
+        {
+            var type = GetType();
+            return type.Assembly.GetManifestResourceStream(type.Namespace + ".thumb.png");
+        }
+
+        public ImageFormat ThumbImageFormat
+        {
+            get
+            {
+                return ImageFormat.Png;
+            }
         }
 
         /// <summary>
