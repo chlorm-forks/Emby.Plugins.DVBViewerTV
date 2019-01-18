@@ -54,7 +54,7 @@ namespace MediaBrowser.Plugins.DVBViewer.Helpers
             return totaltime;
         }
 
-        public static String FloatDateTime(this DateTimeOffset value)
+        public static String FloatDateTimeOffset(this DateTimeOffset value)
         {
             string totaldays = ToDelphiDate(value);
             string totaltime = ToDelphiTime(value);

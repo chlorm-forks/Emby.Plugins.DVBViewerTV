@@ -2,39 +2,41 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <AssemblyVersion>1.5.7.0</AssemblyVersion>
-    <FileVersion>1.5.7.0</FileVersion>
+    <AssemblyVersion>1.6.0.1</AssemblyVersion>
+    <FileVersion>1.6.0.1</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Configuration\configPage.html" />
+    <None Remove="Images\Plugin-thumb.png" />
     <None Remove="Images\DVBViewer-thumb.png" />
     <None Remove="Images\Kids-thumb.png" />
+    <None Remove="Images\Latest-thumb.png" />
     <None Remove="Images\Live Shows-thumb.png" />
     <None Remove="Images\Movies-thumb.png" />
     <None Remove="Images\News &amp; Documentary-thumb.png" />
     <None Remove="Images\Other Shows-thumb.png" />
     <None Remove="Images\Sports-thumb.png" />
     <None Remove="Images\TV Shows-thumb.png" />
-    <None Remove="thumb.png" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Configuration\configPage.html" />
+    <EmbeddedResource Include="Images\Plugin-thumb.png" />
     <EmbeddedResource Include="Images\DVBViewer-thumb.png" />
     <EmbeddedResource Include="Images\Kids-thumb.png" />
+    <EmbeddedResource Include="Images\Latest-thumb.png" />
     <EmbeddedResource Include="Images\Live Shows-thumb.png" />
     <EmbeddedResource Include="Images\Movies-thumb.png" />
     <EmbeddedResource Include="Images\News &amp; Documentary-thumb.png" />
     <EmbeddedResource Include="Images\Other Shows-thumb.png" />
     <EmbeddedResource Include="Images\Sports-thumb.png" />
     <EmbeddedResource Include="Images\TV Shows-thumb.png" />
-    <EmbeddedResource Include="thumb.png" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="mediabrowser.server.core" Version="3.6.0.36-beta" />
-    <PackageReference Include="System.Memory" Version="4.5.1" />
+    <PackageReference Include="mediabrowser.server.core" Version="4.0.0-beta" />
+    <PackageReference Include="System.Memory" Version="4.5.2" />
   </ItemGroup>
 
   <ItemGroup>

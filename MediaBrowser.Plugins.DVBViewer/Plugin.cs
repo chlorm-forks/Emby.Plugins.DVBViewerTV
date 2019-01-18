@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Common.Plugins;
+using MediaBrowser.Model.Drawing;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Plugins;
@@ -12,15 +14,13 @@ using MediaBrowser.Plugins.DVBViewer.Configuration;
 using MediaBrowser.Plugins.DVBViewer.Helpers;
 using MediaBrowser.Plugins.DVBViewer.Interfaces;
 using MediaBrowser.Plugins.DVBViewer.Services.Proxies;
-using System.IO;
-using MediaBrowser.Model.Drawing;
 
 namespace MediaBrowser.Plugins.DVBViewer
 {
     /// <summary>
     /// Class Plugin
     /// </summary>
-    public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
+    public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages, IHasThumbImage
     {
         public static TVServiceProxy TvProxy { get; private set; }
         public static StreamingServiceProxy StreamingProxy { get; private set; }
@@ -70,17 +70,10 @@ namespace MediaBrowser.Plugins.DVBViewer
             }
         }
 
-        private Guid _id = new Guid("a697f993-d2de-45dc-b7ea-687363f7903e");
-
-        public override Guid Id
-        {
-            get { return _id; }
-        }
-
         public Stream GetThumbImage()
         {
             var type = GetType();
-            return type.Assembly.GetManifestResourceStream(type.Namespace + ".thumb.png");
+            return type.Assembly.GetManifestResourceStream("MediaBrowser.Plugins.DVBViewer.Images.Plugin-thumb.png");
         }
 
         public ImageFormat ThumbImageFormat
@@ -89,6 +82,13 @@ namespace MediaBrowser.Plugins.DVBViewer
             {
                 return ImageFormat.Png;
             }
+        }
+
+        private Guid _id = new Guid("a697f993-d2de-45dc-b7ea-687363f7903e");
+
+        public override Guid Id
+        {
+            get { return _id; }
         }
 
         /// <summary>

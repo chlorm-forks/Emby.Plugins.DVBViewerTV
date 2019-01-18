@@ -25,7 +25,7 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
     public class TVServiceProxy : ProxyBase
     {
         private readonly StreamingServiceProxy _wssProxy;
-        private TmdbLookup _tmdbLookup;
+        private readonly TmdbLookup _tmdbLookup;
 
         public TVServiceProxy(IHttpClient httpClient, IJsonSerializer jsonSerializer, IXmlSerializer xmlSerializer, StreamingServiceProxy wssProxy, TmdbLookup tmdbLookup)
             : base(httpClient, jsonSerializer, xmlSerializer)
@@ -136,8 +136,8 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
             var response = GetFromService<Guide>(cancellationToken, typeof(Guide),
                 "api/epg.html?lvl=2&channel={0}&start={1}&end={2}",
                 channel.EPGID,
-                GeneralExtensions.FloatDateTime(startDateUtc),
-                GeneralExtensions.FloatDateTime(endDateUtc));
+                GeneralExtensions.FloatDateTimeOffset(startDateUtc),
+                GeneralExtensions.FloatDateTimeOffset(endDateUtc));
 
             var genreMapper = new GenreMapper(Plugin.Instance.Configuration);
 
@@ -217,7 +217,7 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
                     ChannelName = r.ChannelName,
                     ChannelType = ChannelType.TV,
                     StartDate = DateTimeOffset.ParseExact(r.Start, "yyyyMMddHHmmss", CultureInfo.InvariantCulture).ToUniversalTime(),
-                    EndDate = DateTimeOffset.ParseExact(r.Start, "yyyyMMddHHmmss", CultureInfo.InvariantCulture).Add(TimeSpan.ParseExact(r.Duration, "hhmmss", CultureInfo.InvariantCulture)).ToUniversalTime(),
+                    EndDate =  DateTimeOffset.ParseExact(r.Start, "yyyyMMddHHmmss", CultureInfo.InvariantCulture).Add(TimeSpan.ParseExact(r.Duration, "hhmmss", CultureInfo.InvariantCulture)).ToUniversalTime(),
                     Path = r.File,
                 };
 
@@ -343,22 +343,33 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
                 var guide = GetFromService<Guide>(cancellationToken, typeof(Guide),
                     "api/epg.html?lvl=2&channel={0}&start={1}&end={2}",
                     channels.Where(c => c.Id == timerInfo.ChannelId).Select(c => c.EPGID).FirstOrDefault(),
-                    GeneralExtensions.FloatDateTime(timerInfo.StartDate),
-                    GeneralExtensions.FloatDateTime(timerInfo.EndDate));
+                    GeneralExtensions.FloatDateTimeOffset(timerInfo.StartDate),
+                    GeneralExtensions.FloatDateTimeOffset(timerInfo.EndDate));
 
                 var program = guide.Program.Where(p => GeneralExtensions.GetProgramTime(p.Start) == timerInfo.StartDate).FirstOrDefault();
 
                 if (program != null)
                 {
                     timerInfo.ProgramId = GeneralExtensions.SetEventId(program.ChannelId, program.Start, program.Stop);
-                    timerInfo.Name = (program.EpisodeNumber.HasValue) ? program.Name + " - " + program.EpisodeTitle : program.Name;
-                    timerInfo.EpisodeTitle = program.EpisodeTitle;
+                    //timerInfo.Name = (program.EpisodeNumber.HasValue) ? program.Name + " - " + program.EpisodeTitle : program.Name;
+                    timerInfo.Name = program.Name;
+                    timerInfo.EpisodeTitle = program.EpisodeTitleRegEx;
                     timerInfo.EpisodeNumber = program.EpisodeNumber;
                     timerInfo.SeasonNumber = program.SeasonNumber;
                     timerInfo.Overview = program.Overview;
                 }
 
-                Plugin.Logger.Info("SCHEDULE > Title: {0}, Series: {1}, ChannelId: {2}, StartDate: {3}, EndDate: {4}, IsEnabled: {5}", t.Description, t.Series, timerInfo.ChannelId, timerInfo.StartDate.ToLocalTime(), timerInfo.EndDate.ToLocalTime(), t.Enabled);
+                Plugin.Logger.Info("SCHEDULE > Name: {0}, Title: {1}, SubTitle: {2}, Series: {3}, ChannelId: {4}, StartDate: {5}, EndDate: {6}, Priority: {7}, IsEnabled: {8}",
+                    t.Description,
+                    timerInfo.Name,
+                    timerInfo.EpisodeTitle,
+                    t.Series,
+                    timerInfo.ChannelId,
+                    timerInfo.StartDate.ToLocalTime(),
+                    timerInfo.EndDate.ToLocalTime(),
+                    timerInfo.Priority,
+                    t.Enabled);
+
                 return timerInfo; 
             });
         }
@@ -384,7 +395,7 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
 
         public IEnumerable<SeriesTimerInfo> GetSeriesSchedules(CancellationToken cancellationToken)
         {
-            var response = GetFromService<Searches>(cancellationToken, typeof(Searches), "api/searchlist.html").Search.OrderBy(t => t.Name).ToList();
+            var response = GetFromService<Searches>(cancellationToken, typeof(Searches), "api/searchlist.html").Search.Where(t => t.AutoRecording.Equals("-1")).ToList();
 
             Plugin.Logger.Info("Found overall AutoSearches: {0}", response.Count());
             return response.Select(t =>
@@ -479,8 +490,8 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
             var guide = GetFromService<Guide>(cancellationToken, typeof(Guide),
                     "api/epg.html?lvl=2&channel={0}&start={1}&end={2}",
                     channels.Where(c => c.Id == timer.ChannelId).Select(c => c.EPGID).FirstOrDefault(),
-                    GeneralExtensions.FloatDateTime(timer.StartDate),
-                    GeneralExtensions.FloatDateTime(timer.EndDate));
+                    GeneralExtensions.FloatDateTimeOffset(timer.StartDate),
+                    GeneralExtensions.FloatDateTimeOffset(timer.EndDate));
 
             var episodeTitle = guide.Program.Where(p => GeneralExtensions.GetProgramTime(p.Start) == timer.StartDate).FirstOrDefault().EpisodeTitle;
 
@@ -498,7 +509,7 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
 
             builder.Remove(builder.Length - 1, 1);
 
-            Plugin.Logger.Info("Create new schedule: {0}, StartTime: {1}, EndTime: {2}, ChannelId: {3}", timer.Name, timer.StartDate.ToLocalTime(), timer.EndDate.ToLocalTime(), timer.ChannelId);
+            Plugin.Logger.Info("CREATE SCHEDULE > Name: {0}, StartTime: {1}, EndTime: {2}, ChannelId: {3}", timer.Name, timer.StartDate.ToLocalTime(), timer.EndDate.ToLocalTime(), timer.ChannelId);
             var result = Task.FromResult(GetToService(cancellationToken, builder.ToString()));
 
             if (result.IsCompleted)
@@ -521,7 +532,7 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
 
             builder.Remove(builder.Length - 1, 1);
 
-            Plugin.Logger.Info("Change Schedule: {0}, StartTime: {1}, EndTime: {2}, ChannelId: {3}", timer.Name, timer.StartDate.ToLocalTime(), timer.EndDate.ToLocalTime(), timer.ChannelId);
+            Plugin.Logger.Info("CHANGE SCHEDULE > Name: {0}, StartTime: {1}, EndTime: {2}, ChannelId: {3}", timer.Name, timer.StartDate.ToLocalTime(), timer.EndDate.ToLocalTime(), timer.ChannelId);
             var result = Task.FromResult(GetToService(cancellationToken, builder.ToString()));
 
             if (result.IsCompleted)
@@ -615,13 +626,12 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
 
             builder.Remove(builder.Length - 1, 1);
 
-            Plugin.Logger.Info("Create new AutoSearch: {0}", timer.Name);
+            Plugin.Logger.Info("CREATE AUTOSEARCH > {0}", timer.Name);
             var result = Task.FromResult(GetToService(cancellationToken, builder.ToString()));
 
             result = Task.FromResult(GetToService(cancellationToken, "tasks.html?task=AutoTimer&aktion=tasks"));
 
             if (result.IsCompleted)
-                Plugin.Logger.Info("HTTP STATUS CODE: {0}", result.ToString());
                 RefreshSchedules(cancellationToken);
 
             return result;
@@ -694,7 +704,7 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
 
             builder.Remove(builder.Length - 1, 1);
 
-            Plugin.Logger.Info("Changed AutoSearch: {0}", timer.Name);
+            Plugin.Logger.Info("CHANGE AUTOSEARCH > {0}", timer.Name);
             var result = Task.FromResult(GetToService(cancellationToken, builder.ToString()));
 
             GetToService(cancellationToken, "tasks.html?task=AutoTimer&aktion=tasks");
@@ -715,7 +725,7 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
 
             if (timer.Enabled != "0")
             {
-                Plugin.Logger.Info("Cancel Schedule: {0}, Date: {1}, StartTime: {2}, EndTime: {3}, ChannelId: {4}", timer.Description, timer.Date, timer.Start, timer.End, timer.ChannelId);
+                Plugin.Logger.Info("CANCEL SCHEDULE > Name: {0}, Date: {1}, StartTime: {2}, EndTime: {3}, ChannelId: {4}", timer.Description, timer.Date, timer.Start, timer.End, timer.ChannelId);
                 var result = Task.FromResult(GetToService(cancellationToken, "api/timeredit.html?id={0}&enable=0", scheduleId));
 
                 if (result.IsCompleted)
@@ -725,7 +735,7 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
             }
             else
             {
-                Plugin.Logger.Info("Delete Schedule with Id: {0}", scheduleId);
+                Plugin.Logger.Info("DELETE SCHEDULE > Id: {0}", scheduleId);
                 var result = Task.FromResult(GetToService(cancellationToken, "api/timerdelete.html?id={0}", scheduleId));
 
                 if (result.IsCompleted)
@@ -737,7 +747,7 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
 
         public Task DeleteSeriesSchedule(CancellationToken cancellationToken, string scheduleId)
         {
-            Plugin.Logger.Info("Delete AutoSearch with Id: {0}", scheduleId);
+            Plugin.Logger.Info("DELETE AUTOSEARCH > Id: {0}", scheduleId);
             var result = Task.FromResult(GetToService(cancellationToken, "api/searchdelete.html?name={0}", scheduleId.ToUrlString()));
 
             if (result.IsCompleted)
@@ -757,7 +767,7 @@ namespace MediaBrowser.Plugins.DVBViewer.Services.Proxies
                 DeleteSchedule(cancellationToken, activeRecording.Id).Wait();
             }
 
-            Plugin.Logger.Info("Delete Recording with Id: {0}", recordingId);
+            Plugin.Logger.Info("DELETE RECORDING > Id: {0}", recordingId);
             GetToService(cancellationToken, "api/recdelete.html?recid={0}&delfile=1", recordingId);
         }
 
