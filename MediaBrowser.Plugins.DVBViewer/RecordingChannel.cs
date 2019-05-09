@@ -18,23 +18,44 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Channels;
 using MediaBrowser.Model.MediaInfo;
 using MediaBrowser.Model.LiveTv;
-using MediaBrowser.Plugins.DVBViewer.Services.Entities;
+using MyRecordingInfo=MediaBrowser.Plugins.DVBViewer.Services.Entities.MyRecordingInfo;
 
 namespace MediaBrowser.Plugins.DVBViewer
 {
-    public class RecordingsChannel : IChannel, IHasCacheKey, ISupportsDelete, ISupportsLatestMedia, ISupportsMediaProbe, IHasFolderAttributes
+    public class RecordingsChannel : IChannel, IHasCacheKey, ISupportsDelete, ISupportsLatestMedia, ISupportsMediaProbe, IHasFolderAttributes, IHasChangeEvent
     {
         public ILiveTvManager _liveTvManager;
 
-        private readonly Configuration.PluginConfiguration _pluginConfiguration;
+        public event EventHandler ContentChanged;
+        private Timer _updateTimer;
 
-        public RecordingsChannel(ILiveTvManager liveTvManager, Configuration.PluginConfiguration pluginConfiguration)
+        public void OnContentChanged()
         {
-            _pluginConfiguration = pluginConfiguration;
-
-            if (_pluginConfiguration.EnableRecordingImport)
+            if (ContentChanged != null)
             {
-                _liveTvManager = liveTvManager;
+                ContentChanged(this, EventArgs.Empty);
+            }
+        }
+
+        private void OnUpdateTimerCallback(object state)
+        {
+            OnContentChanged();
+        }
+
+        public RecordingsChannel(ILiveTvManager liveTvManager)
+        {
+            _liveTvManager = liveTvManager;
+
+            var interval = TimeSpan.FromMinutes(15);
+            _updateTimer = new Timer(OnUpdateTimerCallback, null, interval, interval);
+        }
+
+        public void Dispose()
+        {
+            if (_updateTimer != null)
+            {
+                _updateTimer.Dispose();
+                _updateTimer = null;
             }
         }
 
@@ -166,14 +187,13 @@ namespace MediaBrowser.Plugins.DVBViewer
             return GetService().DeleteRecordingAsync(id, cancellationToken);
         }
 
-        public async Task<IEnumerable<ChannelItemInfo>> GetLatestMedia(ChannelLatestMediaSearch request, CancellationToken cancellationToken)
-        {
-            var result = await GetChannelItems(new InternalChannelItemQuery(), i => true, cancellationToken).ConfigureAwait(false);
-            return result.Items.OrderByDescending(i => i.DateModified);
-        }
-
         public Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
+            if (!Plugin.Instance.Configuration.EnableRecordingImport)
+            {
+                return Task.FromResult(new ChannelItemResult());
+            }
+
             if (string.IsNullOrWhiteSpace(query.FolderId))
             {
                 var recordingGroups = GetRecordingGroups(query, cancellationToken);
@@ -273,7 +293,7 @@ namespace MediaBrowser.Plugins.DVBViewer
             return Task.FromResult(result);
         }
 
-        public async Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, Func<MyRecordingInfo, bool> filter, CancellationToken cancellationToken)
+        private async Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, Func<MyRecordingInfo, bool> filter, CancellationToken cancellationToken)
         {
             var service = GetService();
             var allRecordings = await service.GetAllRecordingsAsync(cancellationToken).ConfigureAwait(false);
