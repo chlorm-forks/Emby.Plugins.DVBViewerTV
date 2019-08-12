@@ -331,11 +331,11 @@
                 var page = this;
 
                 $("#saveAndTest", page).click(function () {
-                    saveConfiguration($('.dvbViewerConfigurationPage'));
+                    saveConfiguration(page);
                 });
 
                 $("#saveAndLeave", page).click(function () {
-                    saveConfiguration($('.dvbViewerConfigurationPage'));
+                    saveConfiguration(page);
                 });
 
                 $('form', page).on('submit', function (e) {
@@ -357,30 +357,30 @@
                     $('#txtApiPortNumber', page).val(config.ApiPortNumber);
                     $('#txtStreamPortNumber', page).val(config.StreamPortNumber);
                     $('#txtMediaPortNumber', page).val(config.MediaPortNumber);
-                    $('#chkRequiresAuthentication', page).checked(config.RequiresAuthentication || false).checkboxradio("refresh");
+                    page.querySelector('#chkRequiresAuthentication').checked = config.RequiresAuthentication || false;
                     $('#txtUserName', page).val(config.UserName);
                     $('#txtPassword', page).val(config.Password);
-                    $('#chkChannelFavourites', page).checked(config.ChannelFavourites || false).checkboxradio("refresh");
-                    $('#chkProgramImages', page).checked(config.ProgramImages || false).checkboxradio("refresh");
-                    $('#chkEitContent', page).checked(config.EitContent || false).checkboxradio("refresh");
-                    $('#chkRecGenreMapping', page).checked(config.RecGenreMapping || false).checkboxradio("refresh");
+                    page.querySelector('#chkChannelFavourites').checked = config.ChannelFavourites || false;
+                    page.querySelector('#chkProgramImages').checked = config.ProgramImages || false;
+                    page.querySelector('#chkEitContent').checked = config.EitContent || false;
+                    page.querySelector('#chkRecGenreMapping').checked = config.RecGenreMapping || false;
                     $('#txtTimerPrePadding', page).val(config.TimerPrePadding);
                     $('#txtTimerPostPadding', page).val(config.TimerPostPadding);
                     $('#txtTimerTask', page).val(config.TimerTask);
-                    $('#chkCheckRecordingTitle', page).checked(config.CheckRecordingTitle || false).checkboxradio("refresh");
-                    $('#chkCheckRecordingSubTitle', page).checked(config.CheckRecordingSubTitle || false).checkboxradio("refresh");
-                    $('#chkCheckRemovedRecording', page).checked(config.CheckRemovedRecording || false).checkboxradio("refresh");
-                    $('#chkCheckTimerName', page).checked(config.CheckTimerName || false).checkboxradio("refresh");
-                    $('#chkSkipAlreadyInLibrary', page).checked(config.SkipAlreadyInLibrary || false).checkboxradio("refresh");
-                    $('#chkAutoCreateTimers', page).checked(config.AutoCreateTimers || false).checkboxradio("refresh");
-                    $('#chkEnableRecordingImport', page).checked(config.EnableRecordingImport || false).checkboxradio("refresh");
-                    $('#chkEnableTmdbLookup', page).checked(config.EnableTmdbLookup || false).checkboxradio("refresh");
-                    $('#chkEnableDirectAccess', page).checked(config.EnableDirectAccess || false).checkboxradio("refresh");
-                    $('#chkRequiresPathSubstitution', page).checked(config.RequiresPathSubstitution || false).checkboxradio("refresh");
+                    page.querySelector('#chkCheckRecordingTitle').checked = config.CheckRecordingTitle || false;
+                    page.querySelector('#chkCheckRecordingSubTitle').checked = config.CheckRecordingSubTitle || false;
+                    page.querySelector('#chkCheckRemovedRecording').checked = config.CheckRemovedRecording || false;
+                    page.querySelector('#chkCheckTimerName').checked = config.CheckTimerName || false;
+                    page.querySelector('#chkSkipAlreadyInLibrary').checked = config.SkipAlreadyInLibrary || false;
+                    page.querySelector('#chkAutoCreateTimers').checked = config.AutoCreateTimers || false;
+                    page.querySelector('#chkEnableRecordingImport').checked = config.EnableRecordingImport || false;
+                    page.querySelector('#chkEnableTmdbLookup').checked = config.EnableTmdbLookup || false;
+                    page.querySelector('#chkEnableDirectAccess').checked = config.EnableDirectAccess || false;
+                    page.querySelector('#chkRequiresPathSubstitution').checked = config.RequiresPathSubstitution || false;
                     $('#txtLocalFilePath', page).val(config.LocalFilePath);
                     $('#txtRemoteFilePath', page).val(config.RemoteFilePath);
-                    $('#chkEnableImageProcessing', page).checked(config.EnableImageProcessing || false).checkboxradio("refresh");
-                    $('#chkEnableLogging', page).checked(config.EnableLogging || false).checkboxradio("refresh");
+                    page.querySelector('#chkEnableImageProcessing').checked = config.EnableImageProcessing || false;
+                    page.querySelector('#chkEnableLogging').checked = config.EnableLogging || false;
 
                     checkRequiresAuthentication();
 
@@ -472,33 +472,33 @@
                     config.ApiPortNumber = $('#txtApiPortNumber', form).val();
                     config.StreamPortNumber = $('#txtStreamPortNumber', form).val();
                     config.MediaPortNumber = $('#txtMediaPortNumber', form).val();
-                    config.RequiresAuthentication = $('#chkRequiresAuthentication', form).checked();
+                    config.RequiresAuthentication = form.querySelector('#chkRequiresAuthentication').checked;
                     config.UserName = $('#txtUserName', form).val();
                     config.Password = $('#txtPassword', form).val();
-                    config.ChannelFavourites = $('#chkChannelFavourites', form).checked();
+                    config.ChannelFavourites = form.querySelector('#chkChannelFavourites').checked;
                     config.DefaultChannelGroup = $('#selectChannelGroup', form).val();
                     config.TimerChannelGroup = $('#selectTimerChannelGroup', form).val();
-                    config.ProgramImages = $('#chkProgramImages', form).checked();
-                    config.EitContent = $('#chkEitContent', form).checked();
-                    config.RecGenreMapping = $('#chkRecGenreMapping', form).checked();
+                    config.ProgramImages = form.querySelector('#chkProgramImages').checked;
+                    config.EitContent = form.querySelector('#chkEitContent').checked;
+                    config.RecGenreMapping = form.querySelector('#chkRecGenreMapping').checked;
                     config.TimerPrePadding = $('#txtTimerPrePadding', form).val();
                     config.TimerPostPadding = $('#txtTimerPostPadding', form).val();
                     config.TimerTask = $('#txtTimerTask', form).val();
-                    config.CheckRecordingTitle = $('#chkCheckRecordingTitle', form).checked();
-                    config.CheckRecordingSubTitle = $('#chkCheckRecordingSubTitle', form).checked();
-                    config.CheckRemovedRecording = $('#chkCheckRemovedRecording', form).checked();
-                    config.CheckTimerName = $('#chkCheckTimerName', form).checked();
-                    config.SkipAlreadyInLibrary = $('#chkSkipAlreadyInLibrary', form).checked();
-                    config.SkipAlreadyInLibraryProfile = $('#selectSkipAlreadyInLibraryProfile', form).val();
-                    config.AutoCreateTimers = $('#chkAutoCreateTimers', form).checked();
-                    config.EnableRecordingImport = $('#chkEnableRecordingImport', form).checked();
-                    config.EnableTmdbLookup = $('#chkEnableTmdbLookup', form).checked();
-                    config.EnableDirectAccess = $('#chkEnableDirectAccess', form).checked();
-                    config.RequiresPathSubstitution = $('#chkRequiresPathSubstitution', form).checked();
+                    config.CheckRecordingTitle = form.querySelector('#chkCheckRecordingTitle').checked;
+                    config.CheckRecordingSubTitle = form.querySelector('#chkCheckRecordingSubTitle').checked;
+                    config.CheckRemovedRecording = form.querySelector('#chkCheckRemovedRecording').checked;
+                    config.CheckTimerName = form.querySelector('#chkCheckTimerName').checked;
+                    config.SkipAlreadyInLibrary = form.querySelector('#chkSkipAlreadyInLibrary').checked;
+                    config.SkipAlreadyInLibraryProfile = form.querySelector('#selectSkipAlreadyInLibraryProfile', form).val();
+                    config.AutoCreateTimers = form.querySelector('#chkAutoCreateTimers').checked;
+                    config.EnableRecordingImport = form.querySelector('#chkEnableRecordingImport').checked;
+                    config.EnableTmdbLookup = form.querySelector('#chkEnableTmdbLookup').checked;
+                    config.EnableDirectAccess = form.querySelector('#chkEnableDirectAccess').checked;
+                    config.RequiresPathSubstitution = form.querySelector('#chkRequiresPathSubstitution').checked;
                     config.LocalFilePath = $('#txtLocalFilePath', form).val();
                     config.RemoteFilePath = $('#txtRemoteFilePath', form).val();
-                    config.EnableImageProcessing = $('#chkEnableImageProcessing', form).checked();
-                    config.EnableLogging = $('#chkEnableLogging', form).checked();
+                    config.EnableImageProcessing = form.querySelector('#chkEnableImageProcessing').checked;
+                    config.EnableLogging = form.querySelector('#chkEnableLogging').checked;
 
                     // Copy over the genre mapping fields
                     config.GenreMappings = {
